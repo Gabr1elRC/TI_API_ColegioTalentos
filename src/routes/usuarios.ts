@@ -3,10 +3,15 @@ import {
 } from 'express'
 
 import {
-  listarUsuarios,
+  listarUsuarios,criarUsuario,
 } from '../controllers/usuariosController.js'
 
 const router = Router()
+
+router.post(
+  '/',
+  criarUsuario
+)
 
 router.get(
   '/',

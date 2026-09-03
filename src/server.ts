@@ -5,6 +5,7 @@ import tarefasRoutes from './routes/tarefas'
 import authRoutes from './routes/auth.js'
 import { pool } from './database'
 import usuariosRoutes from './routes/usuarios'
+import jornadaRoutes from './routes/jornada'
 
 const app = express()
 
@@ -19,6 +20,11 @@ app.use(
 app.use(
   '/usuarios',
   usuariosRoutes
+)
+
+app.use(
+  '/jornada',
+  jornadaRoutes
 )
 
 app.use('/tarefas', tarefasRoutes)
