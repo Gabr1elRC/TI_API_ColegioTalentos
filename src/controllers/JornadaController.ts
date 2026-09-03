@@ -451,3 +451,59 @@ export async function listarAtividadesAtivas(
     })
   }
 }
+
+export async function resumoEquipeHoje(
+  req: Request,
+  res: Response
+) {
+  try {
+    const resultado = await pool.query(
+      `
+      SELECT
+        u.id AS usuario_id,
+        u.nome AS usuario_nome,
+        u.perfil,
+        u.setor,
+
+        COUNT(rt.id)::INTEGER
+          AS atividades_hoje,
+
+        COALESCE(
+          SUM(rt.duracao_minutos),
+          0
+        )::INTEGER
+          AS minutos_hoje
+
+      FROM usuarios u
+
+      LEFT JOIN registros_tempo rt
+        ON rt.usuario_id = u.id
+        AND rt.data = CURRENT_DATE
+
+      WHERE u.ativo = true
+
+      GROUP BY
+        u.id,
+        u.nome,
+        u.perfil,
+        u.setor
+
+      ORDER BY u.nome
+      `
+    )
+
+    return res.json({
+      usuarios: resultado.rows,
+    })
+  } catch (erro) {
+    console.error(
+      'Erro ao carregar resumo da equipe:',
+      erro
+    )
+
+    return res.status(500).json({
+      mensagem:
+        'Erro interno ao carregar resumo da equipe.',
+    })
+  }
+}

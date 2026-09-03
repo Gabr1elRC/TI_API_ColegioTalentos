@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
 import {
-  iniciarAtividade,pausarAtividade, retomarAtividade,concluirAtividade,listarAtividadesAtivas,
+  iniciarAtividade,pausarAtividade, retomarAtividade,concluirAtividade,listarAtividadesAtivas, resumoEquipeHoje,
 } from '../controllers/JornadaController'
 
 const router = Router()
@@ -29,6 +29,11 @@ router.post(
 router.get(
   '/ativas',
   listarAtividadesAtivas
+)
+
+router.get(
+  '/resumo-hoje',
+  resumoEquipeHoje
 )
 
 export default router
