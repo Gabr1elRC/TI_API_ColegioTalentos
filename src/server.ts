@@ -4,6 +4,7 @@ import cors from 'cors'
 import tarefasRoutes from './routes/tarefas'
 import authRoutes from './routes/auth.js'
 import { pool } from './database'
+import usuariosRoutes from './routes/usuarios'
 
 const app = express()
 
@@ -13,6 +14,11 @@ app.use(express.json())
 app.use(
   '/auth',
   authRoutes
+)
+
+app.use(
+  '/usuarios',
+  usuariosRoutes
 )
 
 app.use('/tarefas', tarefasRoutes)
