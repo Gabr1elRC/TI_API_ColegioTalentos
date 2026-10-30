@@ -2,6 +2,7 @@ import type {
   Request,
   Response,
 } from 'express'
+
 import bcrypt from 'bcryptjs'
 
 import { pool } from '../database.js'
@@ -17,6 +18,7 @@ export async function criarUsuario(
       senha,
       perfil,
       setor,
+      sala_id,
     } = req.body ?? {}
 
     if (
@@ -35,6 +37,7 @@ export async function criarUsuario(
       'analista',
       'estagiario',
       'direcao',
+      'sala',
     ]
 
     if (
@@ -45,6 +48,16 @@ export async function criarUsuario(
       return res.status(400).json({
         mensagem:
           'Perfil inválido.',
+      })
+    }
+
+    if (
+      perfil === 'sala' &&
+      !sala_id
+    ) {
+      return res.status(400).json({
+        mensagem:
+          'Usuário de sala precisa estar vinculado a uma sala.',
       })
     }
 
@@ -84,6 +97,7 @@ export async function criarUsuario(
           senha_hash,
           perfil,
           setor,
+          sala_id,
           ativo
         )
         VALUES (
@@ -92,6 +106,7 @@ export async function criarUsuario(
           $3,
           $4,
           $5,
+          $6,
           true
         )
         RETURNING
@@ -100,6 +115,7 @@ export async function criarUsuario(
           email,
           perfil,
           setor,
+          sala_id,
           ativo,
           criado_em
         `,
@@ -109,6 +125,7 @@ export async function criarUsuario(
           senhaHash,
           perfil,
           setor || null,
+          sala_id || null,
         ]
       )
 
@@ -143,6 +160,7 @@ export async function listarUsuarios(
           email,
           perfil,
           setor,
+          sala_id,
           ativo,
           criado_em
         FROM usuarios

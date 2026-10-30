@@ -6,6 +6,10 @@ import authRoutes from './routes/auth.js'
 import { pool } from './database'
 import usuariosRoutes from './routes/usuarios'
 import jornadaRoutes from './routes/jornada'
+import notificacoesRoutes from './routes/notificacao'
+import salasRoutes from './routes/salas'
+
+
 
 const app = express()
 
@@ -35,6 +39,13 @@ app.get('/', (_req, res) => {
   })
 })
 
+app.use(
+  '/salas',
+  salasRoutes
+)
+
+
+
 app.get('/banco', async (_req, res) => {
   try {
     const resultado = await pool.query(
@@ -60,6 +71,13 @@ app.get('/banco', async (_req, res) => {
     })
   }
 })
+
+app.use(
+  '/notificacoes',
+  notificacoesRoutes
+)
+
+
 
 const PORT =
   Number(process.env.PORT) || 3333

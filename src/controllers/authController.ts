@@ -33,6 +33,7 @@ export async function login(
           email,
           senha_hash,
           perfil,
+          sala_id,
           setor,
           ativo
         FROM usuarios
@@ -81,6 +82,9 @@ export async function login(
         email: usuario.email,
         perfil: usuario.perfil,
         setor: usuario.setor,
+        salaId: usuario.sala_id
+          ? Number(usuario.sala_id)
+          : null,
       },
     })
   } catch (erro) {
