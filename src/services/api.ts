@@ -1,5 +1,5 @@
-const API_URL = 'http://localhost:3333'
 
+const API_URL = 'http://localhost:3333'
 
 export async function buscarTarefas() {
   const resposta = await fetch(

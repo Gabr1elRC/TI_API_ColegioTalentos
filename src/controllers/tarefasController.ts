@@ -3,115 +3,140 @@ import type {
   Response,
 } from 'express'
 
-import { pool } from '../database'
+import {
+  criarNotificacao,
+} from '../services/notificacoesService.js'
+
+import {
+  pool,
+} from '../database.js'
+
 
 export async function buscarTarefaPorId(
   req: Request,
   res: Response
 ) {
   try {
-    const tarefaId = Number(req.params.id)
+    const tarefaId =
+      Number(req.params.id)
 
     if (!tarefaId) {
       return res.status(400).json({
-        mensagem: 'ID da tarefa inválido.',
+        mensagem:
+          'ID da tarefa inválido.',
       })
     }
 
-    const tarefaResultado = await pool.query(
-      `
-      SELECT
-        tarefas.id,
-        tarefas.titulo,
-        tarefas.descricao,
-        tarefas.solicitante,
-        setores.nome AS setor,
-        tarefas.categoria,
-        tarefas.prioridade,
-        usuarios.nome AS responsavel,
-        tarefas.prazo,
-        tarefas.tempo_previsto,
-        tarefas.status,
-        tarefas.criado_em,
-        tarefas.atualizado_em,
-        tarefas.concluido_em
-      FROM tarefas
-      LEFT JOIN setores
-        ON setores.id = tarefas.setor_id
-      LEFT JOIN usuarios
-        ON usuarios.id = tarefas.responsavel_id
-      WHERE tarefas.id = $1
-      LIMIT 1
-      `,
-      [tarefaId]
-    )
+    const tarefaResultado =
+      await pool.query(
+        `
+        SELECT
+          tarefas.id,
+          tarefas.titulo,
+          tarefas.descricao,
+          tarefas.solicitante,
+          setores.nome AS setor,
+          tarefas.categoria,
+          tarefas.prioridade,
+          usuarios.nome AS responsavel,
+          tarefas.prazo,
+          tarefas.tempo_previsto,
+          tarefas.status,
+          tarefas.criado_em,
+          tarefas.atualizado_em,
+          tarefas.concluido_em
+        FROM tarefas
+        LEFT JOIN setores
+          ON setores.id = tarefas.setor_id
+        LEFT JOIN usuarios
+          ON usuarios.id = tarefas.responsavel_id
+        WHERE tarefas.id = $1
+        LIMIT 1
+        `,
+        [tarefaId]
+      )
 
-    if (tarefaResultado.rows.length === 0) {
+    if (
+      tarefaResultado.rows.length === 0
+    ) {
       return res.status(404).json({
-        mensagem: 'Tarefa não encontrada.',
+        mensagem:
+          'Tarefa não encontrada.',
       })
     }
 
-    const comentariosResultado = await pool.query(
-      `
-      SELECT
-        comentarios.id,
-        comentarios.texto,
-        comentarios.criado_em,
-        usuarios.nome AS autor
-      FROM comentarios
-      LEFT JOIN usuarios
-        ON usuarios.id = comentarios.autor_id
-      WHERE comentarios.tarefa_id = $1
-      ORDER BY comentarios.criado_em ASC
-      `,
-      [tarefaId]
-    )
+    const comentariosResultado =
+      await pool.query(
+        `
+        SELECT
+          comentarios.id,
+          comentarios.texto,
+          comentarios.criado_em,
+          usuarios.nome AS autor
+        FROM comentarios
+        LEFT JOIN usuarios
+          ON usuarios.id = comentarios.autor_id
+        WHERE comentarios.tarefa_id = $1
+        ORDER BY comentarios.criado_em ASC
+        `,
+        [tarefaId]
+      )
 
-    const registrosTempoResultado = await pool.query(
-      `
-      SELECT
-        registros_tempo.id,
-        registros_tempo.data,
-        registros_tempo.inicio,
-        registros_tempo.fim,
-        registros_tempo.duracao_minutos,
-        registros_tempo.acao,
-        registros_tempo.origem,
-        registros_tempo.justificativa,
-        registros_tempo.criado_em,
-        usuarios.nome AS usuario
-      FROM registros_tempo
-      LEFT JOIN usuarios
-        ON usuarios.id = registros_tempo.usuario_id
-      WHERE registros_tempo.tarefa_id = $1
-      ORDER BY registros_tempo.criado_em DESC
-      `,
-      [tarefaId]
-    )
+    const registrosTempoResultado =
+      await pool.query(
+        `
+        SELECT
+          registros_tempo.id,
+          registros_tempo.data,
+          registros_tempo.inicio,
+          registros_tempo.fim,
+          registros_tempo.duracao_minutos,
+          registros_tempo.acao,
+          registros_tempo.origem,
+          registros_tempo.justificativa,
+          registros_tempo.criado_em,
+          usuarios.nome AS usuario
+        FROM registros_tempo
+        LEFT JOIN usuarios
+          ON usuarios.id =
+            registros_tempo.usuario_id
+        WHERE registros_tempo.tarefa_id = $1
+        ORDER BY registros_tempo.criado_em DESC
+        `,
+        [tarefaId]
+      )
 
-    const historicoResultado = await pool.query(
-      `
-      SELECT
-        historico_status.id,
-        historico_status.status_anterior,
-        historico_status.status_novo,
-        historico_status.criado_em,
-        usuarios.nome AS usuario
-      FROM historico_status
-      LEFT JOIN usuarios
-        ON usuarios.id = historico_status.usuario_id
-      WHERE historico_status.tarefa_id = $1
-      ORDER BY historico_status.criado_em DESC
-      `,
-      [tarefaId]
-    )
+    const historicoResultado =
+      await pool.query(
+        `
+        SELECT
+          historico_status.id,
+          historico_status.status_anterior,
+          historico_status.status_novo,
+          historico_status.criado_em,
+          usuarios.nome AS usuario
+        FROM historico_status
+        LEFT JOIN usuarios
+          ON usuarios.id =
+            historico_status.usuario_id
+        WHERE historico_status.tarefa_id = $1
+        ORDER BY historico_status.criado_em DESC
+        `,
+        [tarefaId]
+      )
 
     return res.json({
-      tarefa: tarefaResultado.rows[0],
-      comentarios: comentariosResultado.rows,
-      registrosTempo: registrosTempoResultado.rows,
-      historicoStatus: historicoResultado.rows,
+      tarefa:
+        tarefaResultado.rows[0],
+
+      comentarios:
+        comentariosResultado.rows,
+
+      registrosTempo:
+        registrosTempoResultado.rows,
+
+      historicoStatus:
+        historicoResultado.rows,
     })
   } catch (erro) {
     console.error(
@@ -126,36 +151,43 @@ export async function buscarTarefaPorId(
   }
 }
 
+
 export async function listarTarefas(
   _req: Request,
   res: Response
 ) {
   try {
-    const resultado = await pool.query(`
-      SELECT
-        tarefas.id,
-        tarefas.titulo,
-        tarefas.descricao,
-        tarefas.solicitante,
-        setores.nome AS setor,
-        tarefas.categoria,
-        tarefas.prioridade,
-        usuarios.nome AS responsavel,
-        tarefas.prazo,
-        tarefas.tempo_previsto,
-        tarefas.status,
-        tarefas.criado_em,
-        tarefas.atualizado_em,
-        tarefas.concluido_em
-      FROM tarefas
-      LEFT JOIN setores
-        ON setores.id = tarefas.setor_id
-      LEFT JOIN usuarios
-        ON usuarios.id = tarefas.responsavel_id
-      ORDER BY tarefas.criado_em DESC
-    `)
+    const resultado =
+      await pool.query(
+        `
+        SELECT
+          tarefas.id,
+          tarefas.titulo,
+          tarefas.descricao,
+          tarefas.solicitante,
+          setores.nome AS setor,
+          tarefas.categoria,
+          tarefas.prioridade,
+          usuarios.nome AS responsavel,
+          tarefas.prazo,
+          tarefas.tempo_previsto,
+          tarefas.status,
+          tarefas.criado_em,
+          tarefas.atualizado_em,
+          tarefas.concluido_em
+        FROM tarefas
+        LEFT JOIN setores
+          ON setores.id = tarefas.setor_id
+        LEFT JOIN usuarios
+          ON usuarios.id =
+            tarefas.responsavel_id
+        ORDER BY tarefas.criado_em DESC
+        `
+      )
 
-    return res.json(resultado.rows)
+    return res.json(
+      resultado.rows
+    )
   } catch (erro) {
     console.error(
       'Erro ao buscar tarefas:',
@@ -169,12 +201,14 @@ export async function listarTarefas(
   }
 }
 
+
 export async function adicionarComentario(
   req: Request,
   res: Response
 ) {
   try {
-    const tarefaId = Number(req.params.id)
+    const tarefaId =
+      Number(req.params.id)
 
     const {
       texto,
@@ -205,7 +239,10 @@ export async function adicionarComentario(
     const tarefaResultado =
       await pool.query(
         `
-        SELECT id
+        SELECT
+          id,
+          titulo,
+          responsavel_id
         FROM tarefas
         WHERE id = $1
         LIMIT 1
@@ -225,7 +262,9 @@ export async function adicionarComentario(
     const usuarioResultado =
       await pool.query(
         `
-        SELECT id, nome
+        SELECT
+          id,
+          nome
         FROM usuarios
         WHERE id = $1
           AND ativo = TRUE
@@ -273,20 +312,142 @@ export async function adicionarComentario(
     const comentario =
       resultado.rows[0]
 
+    /*
+     * NOTIFICAÇÃO:
+     * novo comentário
+     */
+    try {
+      const tarefa =
+        tarefaResultado.rows[0]
+
+      const autor =
+        usuarioResultado.rows[0]
+
+      /*
+       * Notifica o responsável,
+       * desde que ele não seja
+       * o próprio autor.
+       */
+      if (
+        tarefa.responsavel_id &&
+        Number(
+          tarefa.responsavel_id
+        ) !== Number(usuarioId)
+      ) {
+        await criarNotificacao({
+          usuarioId:
+            Number(
+              tarefa.responsavel_id
+            ),
+
+          tarefaId,
+
+          tipo:
+            'novo_comentario',
+
+          titulo:
+            'Novo comentário',
+
+          mensagem:
+            `${autor.nome} comentou na demanda "${tarefa.titulo}".`,
+        })
+      }
+
+      /*
+       * Notifica os analistas,
+       * exceto quem comentou.
+       */
+      const analistas =
+        await pool.query(
+          `
+          SELECT id
+          FROM usuarios
+          WHERE perfil = 'analista'
+            AND ativo = true
+          `
+        )
+
+      for (
+        const analista
+        of analistas.rows
+      ) {
+        /*
+         * Não notifica
+         * quem comentou.
+         */
+        if (
+          Number(
+            analista.id
+          ) === Number(usuarioId)
+        ) {
+          continue
+        }
+
+        /*
+         * Evita duplicar caso
+         * o responsável também
+         * seja analista.
+         */
+        if (
+          tarefa.responsavel_id &&
+          Number(
+            analista.id
+          ) ===
+            Number(
+              tarefa.responsavel_id
+            )
+        ) {
+          continue
+        }
+
+        await criarNotificacao({
+          usuarioId:
+            Number(
+              analista.id
+            ),
+
+          tarefaId,
+
+          tipo:
+            'novo_comentario',
+
+          titulo:
+            'Novo comentário',
+
+          mensagem:
+            `${autor.nome} comentou na demanda "${tarefa.titulo}".`,
+        })
+      }
+    } catch (
+      erroNotificacao
+    ) {
+      console.error(
+        'Erro ao gerar notificação de comentário:',
+        erroNotificacao
+      )
+    }
+
     return res.status(201).json({
       mensagem:
         'Comentário adicionado com sucesso.',
+
       comentario: {
-        id: comentario.id,
+        id:
+          comentario.id,
+
         tarefaId:
           comentario.tarefa_id,
+
         autorId:
           comentario.autor_id,
+
         autor:
-          usuarioResultado.rows[0]
-            .nome,
+          usuarioResultado
+            .rows[0].nome,
+
         texto:
           comentario.texto,
+
         criadoEm:
           comentario.criado_em,
       },
@@ -304,12 +465,14 @@ export async function adicionarComentario(
   }
 }
 
+
 export async function adicionarRegistroTempo(
   req: Request,
   res: Response
 ) {
   try {
-    const tarefaId = Number(req.params.id)
+    const tarefaId =
+      Number(req.params.id)
 
     const {
       usuarioId,
@@ -386,7 +549,9 @@ export async function adicionarRegistroTempo(
     const usuarioResultado =
       await pool.query(
         `
-        SELECT id, nome
+        SELECT
+          id,
+          nome
         FROM usuarios
         WHERE id = $1
           AND ativo = TRUE
@@ -421,7 +586,10 @@ export async function adicionarRegistroTempo(
         VALUES (
           $1,
           $2,
-          COALESCE($3, CURRENT_DATE),
+          COALESCE(
+            $3,
+            CURRENT_DATE
+          ),
           $4,
           $5,
           $6,
@@ -437,7 +605,9 @@ export async function adicionarRegistroTempo(
           data || null,
           inicio || null,
           fim || null,
-          Number(duracaoMinutos),
+          Number(
+            duracaoMinutos
+          ),
           acao,
           origem,
           justificativa || null,
@@ -447,6 +617,7 @@ export async function adicionarRegistroTempo(
     return res.status(201).json({
       mensagem:
         'Registro de tempo adicionado com sucesso.',
+
       registroTempo:
         resultado.rows[0],
     })
@@ -462,6 +633,7 @@ export async function adicionarRegistroTempo(
     })
   }
 }
+
 
 export async function adicionarRegistroTempoManual(
   req: Request,
@@ -495,7 +667,7 @@ export async function adicionarRegistroTempoManual(
         SELECT id
         FROM usuarios
         WHERE id = $1
-        AND ativo = true
+          AND ativo = true
         `,
         [usuarioId]
       )
@@ -526,7 +698,10 @@ export async function adicionarRegistroTempoManual(
         VALUES (
           NULL,
           $1,
-          COALESCE($2, CURRENT_DATE),
+          COALESCE(
+            $2,
+            CURRENT_DATE
+          ),
           $3,
           $4,
           $5,
@@ -564,13 +739,16 @@ export async function adicionarRegistroTempoManual(
   }
 }
 
+
 export async function listarRegistrosTempoHoje(
   req: Request,
   res: Response
 ) {
   try {
     const usuarioId =
-      Number(req.params.usuarioId)
+      Number(
+        req.params.usuarioId
+      )
 
     if (!usuarioId) {
       return res.status(400).json({
@@ -620,6 +798,13 @@ export async function listarRegistrosTempoHoje(
     })
   }
 }
+
+
+/*
+ * =====================================
+ * CRIAR TAREFA
+ * =====================================
+ */
 
 export async function criarTarefa(
   req: Request,
@@ -676,7 +861,8 @@ export async function criarTarefa(
     const setorId =
       setorResultado.rows[0].id
 
-    let responsavelId = null
+    let responsavelId:
+      number | null = null
 
     if (responsavel) {
       const usuarioResultado =
@@ -695,7 +881,10 @@ export async function criarTarefa(
         usuarioResultado.rows.length > 0
       ) {
         responsavelId =
-          usuarioResultado.rows[0].id
+          Number(
+            usuarioResultado
+              .rows[0].id
+          )
       }
     }
 
@@ -741,11 +930,142 @@ export async function criarTarefa(
         ]
       )
 
+    const tarefaCriada =
+      resultado.rows[0]
+
+    /*
+     * =====================================
+     * NOTIFICAÇÃO:
+     * NOVA DEMANDA / DEMANDA CRÍTICA
+     * =====================================
+     */
+
+    try {
+      const analistas =
+        await pool.query(
+          `
+          SELECT id
+          FROM usuarios
+          WHERE perfil = 'analista'
+            AND ativo = true
+          `
+        )
+
+      const ehCritica =
+        prioridade === 'Crítica'
+
+      for (
+        const analista
+        of analistas.rows
+      ) {
+        await criarNotificacao({
+          usuarioId:
+            Number(
+              analista.id
+            ),
+
+          tarefaId:
+            Number(
+              tarefaCriada.id
+            ),
+
+          tipo:
+            ehCritica
+              ? 'demanda_critica'
+              : 'nova_demanda',
+
+          titulo:
+            ehCritica
+              ? '⚠️ Demanda crítica'
+              : 'Nova demanda',
+
+          mensagem:
+            ehCritica
+              ? `ATENÇÃO: nova demanda crítica "${titulo}". Solicitante: ${solicitante}.`
+              : `Nova demanda criada: "${titulo}". Solicitante: ${solicitante}.`,
+        })
+      }
+
+      /*
+       * Se a tarefa já for criada
+       * com responsável, também
+       * notificamos o responsável.
+       *
+       * Evita duplicidade caso ele
+       * seja um analista que já recebeu
+       * a notificação acima.
+       */
+      if (responsavelId) {
+        const responsavelResultado =
+          await pool.query(
+            `
+            SELECT
+              id,
+              perfil
+            FROM usuarios
+            WHERE id = $1
+              AND ativo = true
+            LIMIT 1
+            `,
+            [responsavelId]
+          )
+
+        if (
+          responsavelResultado
+            .rows.length > 0
+        ) {
+          const usuarioResponsavel =
+            responsavelResultado
+              .rows[0]
+
+          if (
+            usuarioResponsavel
+              .perfil !==
+            'analista'
+          ) {
+            await criarNotificacao({
+              usuarioId:
+                Number(
+                  responsavelId
+                ),
+
+              tarefaId:
+                Number(
+                  tarefaCriada.id
+                ),
+
+              tipo:
+                'demanda_atribuida',
+
+              titulo:
+                'Nova demanda atribuída',
+
+              mensagem:
+                `Você recebeu a demanda "${titulo}".`,
+            })
+          }
+        }
+      }
+    } catch (
+      erroNotificacao
+    ) {
+      /*
+       * A tarefa já foi criada.
+       * Falha na notificação
+       * não desfaz a tarefa.
+       */
+      console.error(
+        'Erro ao gerar notificação de nova demanda:',
+        erroNotificacao
+      )
+    }
+
     return res.status(201).json({
       mensagem:
         'Tarefa criada com sucesso.',
+
       tarefa:
-        resultado.rows[0],
+        tarefaCriada,
     })
   } catch (erro) {
     console.error(
@@ -760,11 +1080,181 @@ export async function criarTarefa(
   }
 }
 
+
+/*
+ * =====================================
+ * ALTERAR RESPONSÁVEL
+ * =====================================
+ */
+
+export async function alterarResponsavelTarefa(
+  req: Request,
+  res: Response
+) {
+  try {
+    const tarefaId =
+      Number(req.params.id)
+
+    const {
+      responsavelId,
+    } = req.body ?? {}
+
+    if (!tarefaId) {
+      return res.status(400).json({
+        mensagem:
+          'ID da tarefa inválido.',
+      })
+    }
+
+    if (!responsavelId) {
+      return res.status(400).json({
+        mensagem:
+          'Informe o responsável.',
+      })
+    }
+
+    const tarefaResultado =
+      await pool.query(
+        `
+        SELECT
+          id,
+          titulo,
+          responsavel_id
+        FROM tarefas
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [tarefaId]
+      )
+
+    if (
+      tarefaResultado.rows.length === 0
+    ) {
+      return res.status(404).json({
+        mensagem:
+          'Tarefa não encontrada.',
+      })
+    }
+
+    const responsavelResultado =
+      await pool.query(
+        `
+        SELECT
+          id,
+          nome,
+          perfil
+        FROM usuarios
+        WHERE id = $1
+          AND ativo = true
+        LIMIT 1
+        `,
+        [responsavelId]
+      )
+
+    if (
+      responsavelResultado.rows.length === 0
+    ) {
+      return res.status(400).json({
+        mensagem:
+          'Responsável inválido.',
+      })
+    }
+
+    const tarefaAtual =
+      tarefaResultado.rows[0]
+
+    const responsavelNovo =
+      responsavelResultado.rows[0]
+
+    const resultado =
+      await pool.query(
+        `
+        UPDATE tarefas
+        SET
+          responsavel_id = $1,
+          atualizado_em = NOW()
+        WHERE id = $2
+        RETURNING *
+        `,
+        [
+          responsavelId,
+          tarefaId,
+        ]
+      )
+
+    /*
+     * Só notifica se
+     * realmente mudou.
+     */
+    if (
+      Number(
+        tarefaAtual.responsavel_id
+      ) !==
+        Number(
+          responsavelId
+        )
+    ) {
+      try {
+        await criarNotificacao({
+          usuarioId:
+            Number(
+              responsavelId
+            ),
+
+          tarefaId,
+
+          tipo:
+            'demanda_atribuida',
+
+          titulo:
+            'Nova demanda atribuída',
+
+          mensagem:
+            `Você recebeu a demanda "${tarefaAtual.titulo}".`,
+        })
+      } catch (
+        erroNotificacao
+      ) {
+        console.error(
+          'Erro ao gerar notificação de atribuição:',
+          erroNotificacao
+        )
+      }
+    }
+
+    return res.json({
+      mensagem:
+        `Demanda atribuída a ${responsavelNovo.nome}.`,
+
+      tarefa:
+        resultado.rows[0],
+    })
+  } catch (erro) {
+    console.error(
+      'Erro ao alterar responsável:',
+      erro
+    )
+
+    return res.status(500).json({
+      mensagem:
+        'Erro ao alterar responsável.',
+    })
+  }
+}
+
+
+/*
+ * =====================================
+ * ALTERAR STATUS
+ * =====================================
+ */
+
 export async function alterarStatusTarefa(
   req: Request,
   res: Response
 ) {
-  const client = await pool.connect()
+  const client =
+    await pool.connect()
 
   try {
     const tarefaId =
@@ -812,13 +1302,16 @@ export async function alterarStatusTarefa(
       })
     }
 
-    await client.query('BEGIN')
+    await client.query(
+      'BEGIN'
+    )
 
     const tarefaResultado =
       await client.query(
         `
         SELECT
           id,
+          titulo,
           status
         FROM tarefas
         WHERE id = $1
@@ -840,8 +1333,11 @@ export async function alterarStatusTarefa(
       })
     }
 
+    const tarefaAtual =
+      tarefaResultado.rows[0]
+
     const statusAnterior =
-      tarefaResultado.rows[0].status
+      tarefaAtual.status
 
     const concluidoEm =
       status === 'Concluída'
@@ -889,18 +1385,207 @@ export async function alterarStatusTarefa(
       ]
     )
 
-    await client.query('COMMIT')
+    await client.query(
+      'COMMIT'
+    )
+
+    /*
+ * =====================================
+ * NOTIFICAÇÃO:
+ * MUDANÇA DE STATUS
+ * =====================================
+ */
+
+if (
+  statusAnterior !== status
+) {
+  try {
+    const tarefaComResponsavel =
+      await pool.query(
+        `
+        SELECT
+          titulo,
+          responsavel_id
+        FROM tarefas
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [tarefaId]
+      )
+
+    if (
+      tarefaComResponsavel
+        .rows.length > 0
+    ) {
+      const tarefa =
+        tarefaComResponsavel
+          .rows[0]
+
+      if (
+        tarefa.responsavel_id &&
+        Number(
+          tarefa.responsavel_id
+        ) !==
+          Number(
+            usuarioId
+          )
+      ) {
+        await criarNotificacao({
+          usuarioId:
+            Number(
+              tarefa.responsavel_id
+            ),
+
+          tarefaId,
+
+          tipo:
+            'status_alterado',
+
+          titulo:
+            'Status da demanda alterado',
+
+          mensagem:
+            `A demanda "${tarefa.titulo}" foi alterada para "${status}".`,
+        })
+      }
+    }
+  } catch (
+    erroNotificacao
+  ) {
+    console.error(
+      'Erro ao gerar notificação de mudança de status:',
+      erroNotificacao
+    )
+  }
+}
+
+    /*
+     * =====================================
+     * NOTIFICAÇÃO:
+     * DEMANDA CONCLUÍDA
+     * =====================================
+     */
+
+    if (
+      status === 'Concluída' &&
+      statusAnterior !==
+        'Concluída'
+    ) {
+      try {
+        let nomeUsuario =
+          'Um usuário'
+
+        let perfilUsuario:
+          string | null = null
+
+        if (usuarioId) {
+          const usuarioResultado =
+            await pool.query(
+              `
+              SELECT
+                nome,
+                perfil
+              FROM usuarios
+              WHERE id = $1
+              LIMIT 1
+              `,
+              [usuarioId]
+            )
+
+          if (
+            usuarioResultado
+              .rows.length > 0
+          ) {
+            nomeUsuario =
+              usuarioResultado
+                .rows[0].nome
+
+            perfilUsuario =
+              usuarioResultado
+                .rows[0].perfil
+          }
+        }
+
+        const analistas =
+          await pool.query(
+            `
+            SELECT id
+            FROM usuarios
+            WHERE perfil = 'analista'
+              AND ativo = true
+            `
+          )
+
+        for (
+          const analista
+          of analistas.rows
+        ) {
+          /*
+           * Se foi o próprio
+           * analista que concluiu,
+           * não notifica ele mesmo.
+           */
+          if (
+            Number(
+              analista.id
+            ) ===
+              Number(
+                usuarioId
+              ) &&
+            perfilUsuario ===
+              'analista'
+          ) {
+            continue
+          }
+
+          await criarNotificacao({
+            usuarioId:
+              Number(
+                analista.id
+              ),
+
+            tarefaId,
+
+            tipo:
+              'demanda_concluida',
+
+            titulo:
+              'Demanda concluída',
+
+            mensagem:
+              `${nomeUsuario} concluiu a demanda "${tarefaAtual.titulo}".`,
+          })
+        }
+      } catch (
+        erroNotificacao
+      ) {
+        /*
+         * A tarefa já foi concluída.
+         * Falha na notificação
+         * não desfaz a alteração.
+         */
+        console.error(
+          'Erro ao gerar notificação de conclusão:',
+          erroNotificacao
+        )
+      }
+    }
 
     return res.json({
       mensagem:
         'Status alterado com sucesso.',
+
       tarefa:
         resultado.rows[0],
     })
   } catch (erro) {
-    await client.query(
-      'ROLLBACK'
-    )
+    try {
+      await client.query(
+        'ROLLBACK'
+      )
+    } catch {
+      // Ignora erro de rollback
+    }
 
     console.error(
       'Erro ao alterar status:',

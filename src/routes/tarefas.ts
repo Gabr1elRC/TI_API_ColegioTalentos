@@ -9,6 +9,7 @@ import {
   adicionarRegistroTempo,
   adicionarRegistroTempoManual,
   listarRegistrosTempoHoje,
+  alterarResponsavelTarefa
 } from '../controllers/tarefasController'
 
 const router = Router()
@@ -42,6 +43,11 @@ router.post(
 router.post(
   '/:id/comentarios',
   adicionarComentario
+)
+
+router.patch(
+  '/:id/responsavel',
+  alterarResponsavelTarefa
 )
 
 
